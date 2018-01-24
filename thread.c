@@ -110,13 +110,13 @@ unsigned short refcount_decr(unsigned short *refcount) {
 }
 
 void item_lock(uint32_t hv) {
-#ifdef MEMC3_ASSOC_CHAIN 
+#ifdef MEMC3_ASSOC_CHAIN
     mutex_lock(&item_locks[hv & item_lock_mask]);
 #endif
 }
 
 void item_unlock(uint32_t hv) {
-#ifdef MEMC3_ASSOC_CHAIN 
+#ifdef MEMC3_ASSOC_CHAIN
     pthread_mutex_unlock(&item_locks[hv & item_lock_mask]);
 #endif
 }
@@ -227,11 +227,11 @@ static void create_worker(void *(*func)(void *), void *arg, int i) {
 #ifdef __linux__
     cpu_set_t cpuset;
     int coreid;
-    coreid = 6 + i;
+    coreid = i;
     CPU_ZERO(&cpuset);
     CPU_SET(coreid, &cpuset);
     pthread_attr_init(&attr);
-    pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);  
+    pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
 #endif
 
     if ((ret = pthread_create(&thread, &attr, func, arg)) != 0) {
@@ -255,7 +255,7 @@ void accept_new_conns(const bool do_accept) {
  * Set up a thread's information.
  */
 static void setup_thread(LIBEVENT_THREAD *me) {
-    
+
     me->base = event_init();
     if (! me->base) {
         fprintf(stderr, "Can't allocate event base\n");
@@ -352,7 +352,7 @@ static void thread_libevent_process(int fd, short which, void *arg) {
             c->thread = me;
         }
         cqi_free(item);
-    }    
+    }
 }
 
 /* Which thread we assigned a connection to most recently. */
@@ -539,7 +539,7 @@ enum store_item_type do_store_item(item *it, const uint32_t hv) {
         assert((old_it->it_flags & ITEM_LINKED) == 0);
         assert((old_it->it_flags & ITEM_SLABBED) != 0);
         after_write(old_it);
-    } 
+    }
     before_write(it);
     int ret = do_item_link_nolock(it, hv);
     after_write(it);
@@ -796,4 +796,3 @@ void thread_init(int nthreads, struct event_base *main_base) {
     }
     pthread_mutex_unlock(&init_lock);
 }
-
